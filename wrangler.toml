@@ -1,0 +1,6 @@
+name = "raindrop-suggest"
+main = "src/worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+# RAINDROP_TOKEN is set via `wrangler secret put RAINDROP_TOKEN`
