@@ -13,8 +13,8 @@ export default {
       });
     }
 
-    // Only handle /suggest endpoint
-    if (url.pathname !== "/suggest") {
+    // Handle both root and /suggest endpoints
+    if (url.pathname !== "/" && url.pathname !== "/suggest") {
       return new Response("Not found", { status: 404 });
     }
 
@@ -25,8 +25,16 @@ export default {
       return jsonResponse(["", [], [], []]);
     }
 
+    // Debug endpoint - remove after testing
+    if (url.searchParams.get("debug") === "1") {
+      const hasToken = !!env.RAINDROP_TOKEN;
+      const tokenLength = env.RAINDROP_TOKEN?.length || 0;
+      const tokenPreview = env.RAINDROP_TOKEN ? env.RAINDROP_TOKEN.slice(0, 8) + "..." : "NOT SET";
+      return jsonResponse({ hasToken, tokenLength, tokenPreview, query });
+    }
+
     try {
-      const apiUrl = `https://api.raindrop.io/v1/raindrops/0?search=${encodeURIComponent(query)}&sort=score`;
+      const apiUrl = `https://api.raindrop.io/rest/v1/raindrops/0?search=${encodeURIComponent(query)}&sort=score`;
 
       const response = await fetch(apiUrl, {
         headers: {
@@ -35,8 +43,9 @@ export default {
       });
 
       if (!response.ok) {
-        console.error(`Raindrop API error: ${response.status}`);
-        return jsonResponse([query, [], [], []]);
+        const errorBody = await response.text();
+        console.error(`Raindrop API error: ${response.status}`, errorBody);
+        return jsonResponse({ error: response.status, body: errorBody, query });
       }
 
       const data = await response.json();
