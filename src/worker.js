@@ -51,11 +51,12 @@ export default {
       const data = await response.json();
       const items = data?.items ?? [];
 
-      // OpenSearch Suggestions format: [query, [titles], [descriptions], [urls]]
-      const titles = items.slice(0, 8).map((item) => item.title || item.link);
-      const links = items.slice(0, 8).map((item) => item.link);
+      // OpenSearch Suggestions format: [query, [completions], [descriptions], [urls]]
+      // URLs only - Vivaldi navigates directly when selected
+      const results = items.slice(0, 15);
+      const urls = results.map((item) => item.link);
 
-      return jsonResponse([query, titles, [], links]);
+      return jsonResponse([query, urls, [], urls]);
     } catch (error) {
       console.error("Error fetching from Raindrop:", error);
       return jsonResponse([query, [], [], []]);
